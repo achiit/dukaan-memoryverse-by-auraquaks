@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MEMORYVERSE — Train Your Brain!</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Outfit:wght@400;600&display=swap">
+<style>
+:root{--bg:#070b22;--p:#a855f7;--b:#3b82f6;--c:#22d3ee;--tx:#e8ecff;--mu:#94a3d8;--gl:rgba(255,255,255,.07);--bd:rgba(255,255,255,.14);color-scheme:dark}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{background:radial-gradient(circle at 20% 0,#2a1065 0,transparent 45%),radial-gradient(circle at 90% 100%,#0b3a7a 0,transparent 45%),var(--bg);color:var(--tx);font:16px/1.4 Outfit,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
+canvas#bg,canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+canvas#bg{z-index:0}canvas#fx{z-index:60}
+header,main{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:10px 14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{font:800 14px Unbounded,sans-serif;letter-spacing:.04em;background:linear-gradient(90deg,var(--c),var(--p));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lv{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mu)}
+.xp{width:90px;height:8px;border-radius:9px;background:var(--gl);overflow:hidden;border:1px solid var(--bd)}
+.xp i{display:block;height:100%;background:linear-gradient(90deg,var(--b),var(--c));transition:width .6s}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.glass{background:var(--gl);border:1px solid var(--bd);border-radius:20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.btn{padding:10px 16px;border-radius:14px;background:var(--gl);border:1px solid var(--bd);font-weight:600;transition:.2s}
+.btn:hover:not(:disabled){transform:translateY(-2px);border-color:var(--c);box-shadow:0 0 18px #22d3ee55}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.big{font:800 clamp(18px,4vw,26px) Unbounded,sans-serif;padding:18px 44px;border-radius:60px;background:linear-gradient(90deg,var(--p),var(--b),var(--c));background-size:200%;box-shadow:0 0 34px #a855f788;animation:pulse 2.4s infinite,slide 5s linear infinite;color:#fff}
+.big:hover{transform:scale(1.06)}
+@keyframes pulse{50%{box-shadow:0 0 60px #22d3eeaa}}
+@keyframes slide{to{background-position:200%}}
+.screen{display:none}.screen.on{display:block}
+#home{text-align:center;padding-top:2vh}
+h1{font:800 clamp(34px,10vw,76px)/1 Unbounded,sans-serif;background:linear-gradient(100deg,#fff,var(--c) 35%,var(--p) 70%,#fff);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:slide 6s linear infinite;letter-spacing:-.02em}
+.sub{margin:10px 0 26px;color:var(--mu);font-size:clamp(16px,3vw,20px)}
+.diffs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:28px 0 8px}
+.diff{padding:14px 8px;border-radius:16px;border:1px solid var(--bd);background:var(--gl);transition:.2s}
+.diff b{display:block;font:600 15px Unbounded,sans-serif}.diff small{color:var(--mu)}
+.diff.sel{border-color:var(--c);box-shadow:0 0 22px #22d3ee66;background:rgba(34,211,238,.12)}
+.best{color:var(--mu);min-height:22px;margin-bottom:18px}
+.daily{padding:14px 18px;margin:18px auto;max-width:520px;display:flex;gap:12px;align-items:center;justify-content:space-between;text-align:left;flex-wrap:wrap}
+.nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
+#hud{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+.st{padding:8px 4px;text-align:center;border-radius:14px}
+.st small{display:block;color:var(--mu);font-size:11px}.st b{font:600 clamp(14px,3.6vw,20px) Unbounded,sans-serif}
+.st.low b{color:#fb7185;animation:pulse 1s infinite}
+.prog{height:10px;border-radius:9px;background:var(--gl);border:1px solid var(--bd);overflow:hidden;margin:4px 0 10px}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--c));transition:width .4s}
+.ctl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.ctl .btn{padding:8px 12px;font-size:14px}
+.bw{position:relative;margin:0 auto;width:min(100%,calc((100dvh - 330px)*var(--ar)),760px);min-width:min(100%,270px)}
+#board{display:grid;grid-template-columns:repeat(var(--c),1fr);gap:clamp(3px,1vw,10px);font-size:var(--fs,30px)}
+#board.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.card{aspect-ratio:1;perspective:700px;animation:deal .45s both;animation-delay:var(--d);border-radius:12px}
+@keyframes deal{from{opacity:0;transform:scale(.3) translateY(30px)}}
+.in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,1.4,.5,1)}
+.card{position:relative;display:block;width:100%}
+.open .in,.done .in{transform:rotateY(180deg)}
+.f{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center;border-radius:inherit;border:1px solid var(--bd)}
+.bk{background:var(--back);font-size:.5em;color:#ffffffaa}.bk::after{content:"✦"}
+.card:hover:not(.open):not(.done) .bk{box-shadow:0 0 16px var(--c);filter:brightness(1.25)}
+.ft{transform:rotateY(180deg);background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.06));backdrop-filter:blur(6px);line-height:1}
+.done .ft{border-color:var(--c);box-shadow:0 0 16px #22d3ee99,inset 0 0 14px #a855f755;animation:pop .5s}
+@keyframes pop{40%{transform:rotateY(180deg) scale(1.2)}}
+[data-back=nebula]{--back:linear-gradient(135deg,#6d28d9,#2563eb)}
+[data-back=grid]{--back:repeating-linear-gradient(45deg,#0e7490 0 6px,#164e63 6px 12px)}
+[data-back=wave]{--back:radial-gradient(circle at 30% 20%,#f472b6,#7c3aed 60%,#1e1b4b)}
+[data-back=gold]{--back:linear-gradient(135deg,#f59e0b,#b45309 60%,#78350f)}
+.ov{position:absolute;inset:0;z-index:5;display:grid;place-items:center;text-align:center;background:rgba(7,11,34,.93);border-radius:18px;backdrop-filter:blur(10px)}
+[hidden]{display:none!important}
+#cd{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(7,11,34,.7);font:800 clamp(80px,25vw,220px) Unbounded,sans-serif;color:var(--c);text-shadow:0 0 40px var(--p)}
+#cd span{animation:zoom .9s both}
+@keyframes zoom{from{transform:scale(2.4);opacity:0}30%{opacity:1}to{transform:scale(.8);opacity:.2}}
+#modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(3,5,20,.75);padding:14px}
+.box{position:relative;width:min(560px,100%);max-height:88dvh;overflow:auto;padding:24px 20px;background:rgba(18,22,60,.92);animation:deal .35s}
+.x{position:absolute;top:10px;right:12px;font-size:20px;padding:6px 10px}
+.box h2{font:800 22px Unbounded,sans-serif;margin-bottom:12px;padding-right:30px}
+.box p,.box li{color:#cdd6ff;margin:6px 0}.box ul{padding-left:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:10px 0}
+.tile{padding:12px;border-radius:14px;border:1px solid var(--bd);background:var(--gl);text-align:center}
+.tile.sel{border-color:var(--c);box-shadow:0 0 16px #22d3ee66}.tile.lock{opacity:.45}
+.tile big{display:block;font-size:26px}.tile .v{font:600 20px Unbounded,sans-serif}
+.stars{font-size:44px;letter-spacing:6px;filter:drop-shadow(0 0 12px gold)}
+.stars .off{filter:grayscale(1) opacity(.3)}
+table{width:100%;border-collapse:collapse}td,th{padding:7px 4px;text-align:left;border-bottom:1px solid var(--bd);font-size:14px}
+input[type=text]{width:100%;padding:10px;border-radius:12px;border:1px solid var(--bd);background:var(--gl);color:var(--tx);font:inherit}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:70;display:grid;gap:6px;pointer-events:none}
+#toast div{padding:10px 18px;border-radius:30px;background:#1e1b4bee;border:1px solid var(--c);box-shadow:0 0 20px #22d3ee66;animation:deal .3s}
+.sr{position:absolute;left:-9999px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body data-back="nebula">
+<canvas id="bg" aria-hidden="true"></canvas><canvas id="fx" aria-hidden="true"></canvas>
+<header>
+  <div class="logo">MEMORYVERSE</div>
+  <div class="lv"><span id="lvl">Lv 1</span><div class="xp" title="XP"><i id="xpb"></i></div><button class="btn" id="snd" data-act="mute" aria-label="Toggle sound">🔊</button></div>
+</header>
+<main>
+<section id="home" class="screen on">
+  <h1>MEMORYVERSE</h1>
+  <p class="sub">Train your brain! 🧠 Flip, match and climb the leaderboard.</p>
+  <button class="big" data-act="play">PLAY NOW</button>
+  <div class="diffs" role="radiogroup" aria-label="Difficulty" id="diffs"></div>
+  <div class="best" id="best"></div>
+  <div class="daily glass" id="daily"></div>
+  <nav class="nav">
+    <button class="btn" data-act="how">❓ How to play</button>
+    <button class="btn" data-act="themes">🎨 Themes</button>
+    <button class="btn" data-act="board">🏆 Leaderboard</button>
+    <button class="btn" data-act="stats">📊 Stats</button>
+    <button class="btn" data-act="settings">⚙️ Settings</button>
+  </nav>
+</section>
+<section id="game" class="screen">
+  <div id="hud">
+    <div class="st glass" id="tl"><small>Time left</small><b id="vt">0:00</b></div>
+    <div class="st glass"><small>Elapsed</small><b id="ve">0:00</b></div>
+    <div class="st glass"><small>Moves</small><b id="vm">0</b></div>
+    <div class="st glass"><small>Score</small><b id="vs">0</b></div>
+    <div class="st glass"><small>Combo</small><b id="vc">x0</b></div>
+  </div>
+  <div class="prog" role="progressbar" aria-label="Pairs matched"><i id="pg"></i></div>
+  <div class="ctl">
+    <button class="btn" id="bh" data-act="hint">💡 Hint (3)</button>
+    <button class="btn" data-act="shuffle">🔀 Shuffle</button>
+    <button class="btn" data-act="pause">⏸ Pause</button>
+    <button class="btn" data-act="restart">🔄 Restart</button>
+    <button class="btn" data-act="menu">🏠 Menu</button>
+  </div>
+  <div class="bw" id="bw"><div id="board"></div>
+    <div class="ov" id="pov" hidden><div><h2 style="font:800 28px Unbounded">Paused</h2><p style="margin:10px 0 18px;color:var(--mu)">Cards are hidden while paused.</p><button class="big" style="font-size:18px;padding:14px 30px" data-act="pause">▶ Resume</button></div></div>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+</section>
+</main>
+<div id="cd" hidden></div>
+<div id="modal" hidden><div class="box glass" role="dialog" aria-modal="true"><button class="x" data-act="close" aria-label="Close">✕</button><div id="mb"></div></div></div>
+<div id="toast"></div>
+<script>
+"use strict";
+const $=s=>document.querySelector(s),sp=s=>s.split(' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DIFF={easy:{n:'Easy',c:4,r:4,t:90},medium:{n:'Medium',c:5,r:4,t:120},hard:{n:'Hard',c:6,r:6,t:240},expert:{n:'Expert',c:8,r:8,t:480}};
+const THEMES={
+ animals:{n:'Animals',i:'🦊',l:1,e:sp('🐶 🐱 🦊 🐼 🐨 🦁 🐯 🐸 🐵 🐧 🦉 🦋 🐙 🐬 🦄 🐢 🐝 🐞 🦒 🐘 🦓 🦈 🐳 🦜 🐰 🐻 🐮 🐷 🦀 🐊 🦩 🦔')},
+ space:{n:'Space',i:'🚀',l:1,e:sp('🚀 🛸 🌍 🌙 ⭐ 🌟 ☄️ 🪐 🌌 🌞 👽 🛰️ 🔭 🌠 🌑 🌕 🌎 🌏 🌛 🌜 🌝 🌚 🌃 🌆 💫 ✨ 🔥 ⚡ 🌈 🌀 👾 🤖')},
+ food:{n:'Food',i:'🍕',l:2,e:sp('🍎 🍌 🍇 🍓 🍒 🍑 🍍 🥝 🍉 🍋 🥑 🌽 🥕 🍔 🍕 🌮 🍟 🍩 🍪 🎂 🍦 🍫 🍿 🥐 🍣 🍜 🧁 🥨 🥞 🍰 🥥 🍄')},
+ fantasy:{n:'Fantasy',i:'🐉',l:3,e:sp('🐉 🧙 🧚 🧛 🧜 🧝 🦄 👑 🏰 ⚔️ 🛡️ 🔮 📜 🗝️ 💎 🧪 🪄 🌹 🦅 🐺 🕯️ 🏹 🪙 🧿 👻 💀 🎭 🌋 ⛰️ 🐲 🦇 🕸️')},
+ tech:{n:'Technology',i:'💻',l:4,e:sp('💻 📱 ⌚ 🖥️ ⌨️ 🖱️ 🎮 🕹️ 💾 📡 🔋 🔌 💡 🔦 📷 🎧 🎤 📺 ☎️ 🧲 🔬 🧬 ⚙️ 🔧 🔩 🛰️ 🤖 🚗 ✈️ 🚁 🧮 📟')}};
+const BACKS={nebula:'Nebula',grid:'Circuit',wave:'Aurora',gold:'Gold'};
+const ACH={
+ perfect:['🧠','Perfect Memory','Win with zero mismatches'],
+ speed:['⚡','Speed Master','Win using under 40% of the time limit'],
+ combo:['👑','Combo King','Reach a 5-match combo streak'],
+ first:['🎉','First Victory','Win your first game'],
+ expert:['🔥','Expert Conqueror','Win on Expert'],
+ daily:['📅','Daily Hero','Complete a daily challenge']};
+const DEF={xp:0,best:{},lb:[],ach:{},daily:'',name:'Player',theme:'animals',back:'nebula',mute:false,diff:'easy',
+ st:{games:0,wins:0,matches:0,moves:0,secs:0,combo:0}};
+let S;
+try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem('memoryverse')||'{}'));S.st=Object.assign({},DEF.st,S.st)}catch(e){S=JSON.parse(JSON.stringify(DEF))}
+const save=()=>{try{localStorage.setItem('memoryverse',JSON.stringify(S))}catch(e){}};
+const level=()=>Math.floor(S.xp/150)+1;
+const fmt=t=>{t=Math.max(0,Math.ceil(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function toast(m){const d=document.createElement('div');d.textContent=m;$('#toast').appendChild(d);setTimeout(()=>d.remove(),2800)}
+
+/* ---------- sound ---------- */
+let AC;
+function tone(f,d=.12,type='sine',delay=0,v=.06){
+ if(S.mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+delay;o.type=type;o.frequency.value=f;
+ g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+const sfx={flip:()=>tone(520,.08),match:()=>{tone(660,.12);tone(990,.18,'sine',.1)},miss:()=>tone(160,.22,'sawtooth'),
+ win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',i*.12)),lose:()=>[400,300,200].forEach((f,i)=>tone(f,.3,'sawtooth',i*.15)),
+ tick:()=>tone(800,.05,'square',0,.03)};
+
+/* ---------- effects ---------- */
+const fx=$('#fx'),fc=fx.getContext('2d'),bg=$('#bg'),bc=bg.getContext('2d');
+let conf=[],dots=[];
+function size(){for(const c of[fx,bg]){c.width=innerWidth;c.height=innerHeight}fit()}
+addEventListener('resize',size);
+function confetti(){const cols=['#a855f7','#3b82f6','#22d3ee','#f472b6','#facc15'];
+ for(let i=0;i<170;i++)conf.push({x:innerWidth/2,y:innerHeight/2.5,vx:(Math.random()-.5)*16,vy:-Math.random()*14-3,s:5+Math.random()*7,c:cols[i%5],r:Math.random()*6,l:160+Math.random()*60})}
+const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+for(let i=0;i<(innerWidth<600?25:50);i++)dots.push({x:Math.random(),y:Math.random(),r:Math.random()*2+.5,v:Math.random()*.0004+.0001});
+function loop(){
+ bc.clearRect(0,0,bg.width,bg.height);
+ if(!still)dots.forEach(d=>{d.y-=d.v;if(d.y<0)d.y=1;bc.fillStyle='rgba(120,200,255,.5)';bc.beginPath();bc.arc(d.x*bg.width,d.y*bg.height,d.r,0,7);bc.fill()});
+ fc.clearRect(0,0,fx.width,fx.height);
+ conf=conf.filter(p=>p.l-->0);
+ conf.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.35;p.vx*=.99;p.r+=.2;fc.save();fc.translate(p.x,p.y);fc.rotate(p.r);fc.fillStyle=p.c;fc.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);fc.restore()});
+ requestAnimationFrame(loop)}
+
+/* ---------- home ---------- */
+const dayN=Math.floor(Date.now()/864e5),today=new Date().toISOString().slice(0,10);
+const DQ=(()=>{const d=['easy','medium','hard'][dayN%3],p=DIFF[d].c*DIFF[d].r/2;return{d,max:Math.round(p*(1.7+(dayN%3)*.1))}})();
+function renderHome(){
+ document.body.dataset.back=S.back;
+ $('#lvl').textContent='Lv '+level();$('#xpb').style.width=(S.xp%150)/150*100+'%';$('#snd').textContent=S.mute?'🔇':'🔊';
+ $('#diffs').innerHTML=Object.entries(DIFF).map(([k,d])=>`<button class="diff ${S.diff===k?'sel':''}" role="radio" aria-checked="${S.diff===k}" data-act="diff" data-k="${k}"><b>${d.n}</b><small>${d.r}×${d.c} · ${d.r*d.c/2} pairs</small></button>`).join('');
+ const b=S.best[S.diff];$('#best').textContent=b?`Best: ${b.score} pts · ${b.moves} moves · ${fmt(b.time)}`:'No record yet — set the first one!';
+ const done=S.daily===today;
+ $('#daily').innerHTML=`<div><b>📅 Daily challenge</b><br><small style="color:var(--mu)">Win ${DIFF[DQ.d].n} in ${DQ.max} moves or fewer · +100 XP</small></div>`+(done?'<b>✅ Done today</b>':`<button class="btn" data-act="daily">Start</button>`)}
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))};
+
+/* ---------- game ---------- */
+let G=null;
+function fit(){if(!G)return;const w=$('#board').clientWidth;$('#board').style.setProperty('--fs',w/G.c*.55+'px')}
+async function start(d,daily){
+ closeModal();
+ const D=DIFF[d];S.diff=d;
+ const pairs=D.c*D.r/2,vals=shuf(THEMES[S.theme].e).slice(0,pairs),id=(G?G.id:0)+1;
+ G={id,d,c:D.c,r:D.r,pairs,t:D.t,daily:!!daily,cards:shuf([...vals,...vals]).map(v=>({v,m:false,o:false})),first:null,lock:true,run:false,paused:false,moves:0,score:0,combo:0,maxCombo:0,matched:0,hints:3,hintsUsed:0,el:0,left:D.t,last:0};
+ show('game');$('#pov').hidden=true;$('.ctl [data-act=pause]').textContent='⏸ Pause';
+ $('#bw').style.setProperty('--ar',D.c/D.r);$('#board').style.setProperty('--c',D.c);
+ const bd=$('#board');bd.innerHTML='';
+ G.cards.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.style.setProperty('--d',i*18+'ms');
+  b.setAttribute('aria-label','Card '+(i+1)+', face down');b.innerHTML='<span class="in"><span class="f bk"></span><span class="f ft"></span></span>';
+  b.querySelector('.ft').textContent=c.v;b.onclick=()=>flip(i);c.el=b;bd.appendChild(b)});
+ fit();hud();
+ const cd=$('#cd');cd.hidden=false;
+ for(const n of['3','2','1','GO!']){if(G.id!==id)return;cd.innerHTML='<span>'+n+'</span>';sfx.tick();await sleep(700)}
+ cd.hidden=true;if(G.id!==id)return;
+ G.lock=false;G.run=true;G.last=Date.now()}
+function hud(){
+ $('#vt').textContent=fmt(G.left);$('#ve').textContent=fmt(G.el);$('#vm').textContent=G.moves;$('#vs').textContent=G.score;
+ $('#vc').textContent='x'+G.combo;$('#pg').style.width=G.matched/G.pairs*100+'%';
+ $('#tl').classList.toggle('low',G.left<=10&&G.run);$('#bh').textContent='💡 Hint ('+(G.hints)+')';$('#bh').disabled=G.hints<1}
+setInterval(()=>{if(!G||!G.run||G.paused)return;const n=Date.now();G.el+=(n-G.last)/1000;G.last=n;G.left=Math.max(0,G.t-G.el);hud();if(G.left<=0)end(false)},200);
+const setOpen=(c,on)=>{c.o=on;c.el.classList.toggle('open',on);c.el.setAttribute('aria-label',on||c.m?'Card showing '+c.v:'Card face down')};
+function flip(i){
+ const c=G&&G.cards[i];if(!c||!G.run||G.paused||G.lock||c.m||c.o)return;
+ setOpen(c,true);sfx.flip();
+ if(!G.first){G.first=c;return}
+ const a=G.first;G.first=null;G.moves++;G.lock=true;const id=G.id;
+ if(a.v===c.v){
+  setTimeout(()=>{if(G.id!==id)return;a.m=c.m=true;[a,c].forEach(x=>x.el.classList.add('done'));
+   G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);G.score+=100+50*(G.combo-1);G.matched++;sfx.match();
+   $('#live').textContent='Match! '+G.matched+' of '+G.pairs;G.lock=false;hud();if(G.matched===G.pairs)end(true)},350)
+ }else{
+  G.combo=0;hud();
+  setTimeout(()=>{if(G.id!==id)return;sfx.miss();setOpen(a,false);setOpen(c,false);G.lock=false},800)}
+ hud()}
+function hint(){
+ if(!G||!G.run||G.paused||G.lock||G.hints<1)return;
+ const pool=G.cards.filter(c=>!c.m&&!c.o);if(pool.length<2)return;
+ const a=pool[Math.random()*pool.length|0],b=pool.find(c=>c!==a&&c.v===a.v);
+ G.hints--;G.hintsUsed++;G.score=Math.max(0,G.score-50);G.lock=true;const id=G.id;
+ setOpen(a,true);setOpen(b,true);tone(900,.2,'triangle');hud();
+ setTimeout(()=>{if(G.id!==id)return;setOpen(a,false);setOpen(b,false);G.lock=false},1000)}
+function shuffleBoard(){
+ if(!G||!G.run||G.paused||G.lock)return;
+ const pool=G.cards.filter(c=>!c.m&&!c.o);if(pool.length<3)return toast('Too few cards left to shuffle');
+ const v=shuf(pool.map(c=>c.v));pool.forEach((c,i)=>{c.v=v[i];c.el.querySelector('.ft').textContent=v[i]});
+ G.score=Math.max(0,G.score-100);hud();tone(300,.25,'triangle');
+ $('#board').classList.add('shake');setTimeout(()=>$('#board').classList.remove('shake'),400);toast('Shuffled! −100 pts')}
+function pause(force){
+ if(!G||!G.run&&!G.paused)return;
+ G.paused=force===true?true:!G.paused;$('#pov').hidden=!G.paused;
+ $('.ctl [data-act=pause]').textContent=G.paused?'▶ Resume':'⏸ Pause';if(!G.paused)G.last=Date.now()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause(true)});
+
+function end(win){
+ if(!G.run)return;G.run=false;G.lock=true;
+ const st=S.st;st.games++;st.matches+=G.matched;st.moves+=G.moves;st.secs+=Math.round(G.el);st.combo=Math.max(st.combo,G.maxCombo);
+ const D=DIFF[G.d];let html='';
+ if(!win){sfx.lose();save();
+  html=`<h2>⏰ Time's up!</h2><p>You matched <b>${G.matched}</b> of ${G.pairs} pairs and scored <b>${G.score}</b>.</p>`+(checkAch(false)||'')+
+  `<div class="ctl" style="margin-top:16px"><button class="btn" data-act="restart">🔄 Try again</button><button class="btn" data-act="menu">🏠 Menu</button></div>`;
+  return modal(html)}
+ st.wins++;G.score+=Math.round(G.left)*5;
+ const acc=G.pairs/G.moves,stars=acc>=.7?3:acc>=.45?2:1;
+ let xp=40+G.pairs*4+stars*20;const dq=G.daily&&G.d===DQ.d&&G.moves<=DQ.max&&S.daily!==today;
+ if(dq){xp+=100;S.daily=today;S.ach.daily=1}
+ const before=level();S.xp+=xp;
+ const b=S.best[G.d],rec=!b||G.score>b.score;if(rec)S.best[G.d]={score:G.score,moves:G.moves,time:Math.round(G.el)};
+ S.lb.push({n:S.name,s:G.score,d:D.n,m:G.moves,t:today});S.lb.sort((a,c)=>c.s-a.s);S.lb=S.lb.slice(0,10);
+ const ach=checkAch(true);save();renderHome();sfx.win();confetti();setTimeout(confetti,600);
+ if(level()>before)toast('🎊 Level up! You are now Lv '+level());
+ const un=Object.entries(THEMES).filter(([k,t])=>t.l>before&&t.l<=level()).map(([k,t])=>t.n);
+ html=`<h2>🎉 Victory!</h2><div class="stars" aria-label="${stars} stars">${[1,2,3].map(i=>`<span class="${i>stars?'off':''}">⭐</span>`).join('')}</div>
+ <div class="grid"><div class="tile"><small>Score</small><div class="v">${G.score}</div></div><div class="tile"><small>Moves</small><div class="v">${G.moves}</div></div>
+ <div class="tile"><small>Time</small><div class="v">${fmt(G.el)}</div></div><div class="tile"><small>Best combo</small><div class="v">x${G.maxCombo}</div></div></div>
+ <p>+${xp} XP ${rec?' · 🏅 <b>New personal best!</b>':''}${dq?' · 📅 Daily challenge complete!':''}</p>${un.length?`<p>🔓 Unlocked theme: ${un.join(', ')}</p>`:''}${ach}
+ <div class="ctl" style="margin-top:16px"><button class="btn" data-act="restart">▶ Play again</button><button class="btn" data-act="menu">🏠 Menu</button></div>`;
+ setTimeout(()=>modal(html),700)}
+function checkAch(win){
+ const g=[];if(G.maxCombo>=5)g.push('combo');
+ if(win){if(G.moves===G.pairs)g.push('perfect');if(G.el<G.t*.4)g.push('speed');if(S.st.wins===1)g.push('first');if(G.d==='expert')g.push('expert')}
+ const n=g.filter(k=>!S.ach[k]);n.forEach(k=>S.ach[k]=1);if(S.daily===today&&win&&G.daily&&!S.ach.daily)S.ach.daily=1;save();
+ return n.map(k=>`<p>🏆 Achievement: <b>${ACH[k][1]}</b></p>`).join('')}
+
+/* ---------- modals ---------- */
+let lastFocus;
+function modal(h){lastFocus=document.activeElement;$('#mb').innerHTML=h;$('#modal').hidden=false;$('.x').focus();if(G&&G.run)pause(true)}
+function closeModal(){$('#modal').hidden=true;if(lastFocus&&lastFocus.focus)try{lastFocus.focus()}catch(e){}}
+const V={
+ how:()=>`<h2>How to play</h2><ul><li>Tap a card to flip it, then tap a second card.</li><li>Matching cards stay open and earn points. Back-to-back matches build a combo for bonus points.</li><li>Mismatched cards flip back — remember where they were.</li><li>Beat the countdown. Faster wins add a time bonus.</li><li>💡 Hint shows one pair for a second (3 per game, −50 pts). 🔀 Shuffle rearranges the unmatched cards (−100 pts).</li><li>Stars depend on how few moves you needed. Earn XP to level up and unlock new card themes.</li></ul>`,
+ settings:()=>`<h2>Settings</h2><p><label for="nm">Player name (shown on leaderboard)</label></p><input type="text" id="nm" maxlength="12" value="${esc(S.name)}">
+  <div class="ctl" style="margin-top:14px;justify-content:flex-start"><button class="btn" data-act="mute">${S.mute?'🔇 Sound off':'🔊 Sound on'}</button><button class="btn" data-act="themes">🎨 Themes &amp; card backs</button><button class="btn" data-act="reset">🗑 Reset all data</button></div>`,
+ themes:()=>`<h2>Card themes</h2><div class="grid">${Object.entries(THEMES).map(([k,t])=>{const lk=level()<t.l;return`<button class="tile ${S.theme===k?'sel':''} ${lk?'lock':''}" data-act="theme" data-k="${k}"><big>${lk?'🔒':t.i}</big>${t.n}<br><small>${lk?'Unlocks at Lv '+t.l:'Level '+t.l}</small></button>`}).join('')}</div>
+  <h2 style="margin-top:14px">Card backs</h2><div class="grid">${Object.entries(BACKS).map(([k,n])=>`<button class="tile ${S.back===k?'sel':''}" data-act="back" data-k="${k}" data-back="${k}"><span style="display:block;height:44px;border-radius:10px;background:var(--back);margin-bottom:6px"></span>${n}</button>`).join('')}</div>`,
+ board:()=>`<h2>Leaderboard</h2>`+(S.lb.length?`<table><tr><th>#</th><th>Player</th><th>Score</th><th>Mode</th><th>Moves</th></tr>${S.lb.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.n)}</td><td><b>${r.s}</b></td><td>${r.d}</td><td>${r.m}</td></tr>`).join('')}</table>`:'<p>No scores yet. Win a game to claim the top spot!</p>'),
+ stats:()=>{const s=S.st;return`<h2>Your stats</h2><div class="grid"><div class="tile"><small>Level</small><div class="v">${level()}</div></div><div class="tile"><small>Total XP</small><div class="v">${S.xp}</div></div>
+  <div class="tile"><small>Games</small><div class="v">${s.games}</div></div><div class="tile"><small>Wins</small><div class="v">${s.wins}</div></div>
+  <div class="tile"><small>Win rate</small><div class="v">${s.games?Math.round(s.wins/s.games*100):0}%</div></div><div class="tile"><small>Pairs matched</small><div class="v">${s.matches}</div></div>
+  <div class="tile"><small>Total moves</small><div class="v">${s.moves}</div></div><div class="tile"><small>Best combo</small><div class="v">x${s.combo}</div></div><div class="tile"><small>Time played</small><div class="v">${fmt(s.secs)}</div></div></div>
+  <h2 style="margin-top:14px">Achievements</h2><div class="grid">${Object.entries(ACH).map(([k,a])=>`<div class="tile ${S.ach[k]?'':'lock'}"><big>${S.ach[k]?a[0]:'🔒'}</big><b>${a[1]}</b><br><small>${a[2]}</small></div>`).join('')}</div>`}};
+
+/* ---------- actions ---------- */
+const A={
+ play:()=>start(S.diff),daily:()=>start(DQ.d,true),
+ diff:d=>{S.diff=d.k;save();renderHome()},
+ how:()=>modal(V.how()),settings:()=>modal(V.settings()),themes:()=>modal(V.themes()),board:()=>modal(V.board()),stats:()=>modal(V.stats()),
+ close:()=>{closeModal()},
+ mute:()=>{S.mute=!S.mute;save();renderHome();if(!$('#modal').hidden&&$('#nm'))$('#mb').innerHTML=V.settings()},
+ theme:d=>{const t=THEMES[d.k];if(level()<t.l)return toast('🔒 Reach level '+t.l+' to unlock '+t.n);S.theme=d.k;save();$('#mb').innerHTML=V.themes();toast(t.n+' theme selected')},
+ back:d=>{S.back=d.k;save();document.body.dataset.back=d.k;$('#mb').innerHTML=V.themes()},
+ hint,shuffle:shuffleBoard,pause:()=>pause(),
+ restart:()=>G&&start(G.d,G.daily),
+ menu:()=>{if(G){G.id++;G.run=false;G.paused=false}$('#cd').hidden=true;closeModal();show('home');renderHome()},
+ reset:()=>{if(confirm('Delete all progress, scores and settings?')){localStorage.removeItem('memoryverse');S=JSON.parse(JSON.stringify(DEF));renderHome();closeModal();toast('Data reset')}}};
+document.addEventListener('click',e=>{
+ if(e.target.id==='modal')return closeModal();
+ const b=e.target.closest('[data-act]');if(!b)return;
+ tone(600,.05,'triangle');const f=A[b.dataset.act];f&&f(b.dataset);
+ if(b.dataset.act==='close'&&G&&G.run&&G.paused)$('#pov').hidden=false});
+document.addEventListener('change',e=>{if(e.target.id==='nm'){S.name=e.target.value.trim()||'Player';save()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal();
+ if(e.key==='p'&&G&&G.run&&$('#modal').hidden&&document.activeElement.tagName!=='INPUT')pause()});
+size();renderHome();loop();
+</script>
+</body>
+</html>
